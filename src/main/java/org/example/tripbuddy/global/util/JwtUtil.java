@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.tripbuddy.domain.user.domain.RoleType;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,12 +45,35 @@ public class JwtUtil {
 
     // 토큰에서 username 파싱
     public String getUsername(String token) {
+        return getPayload(token)
+                .get("username", String.class);
+    }
+
+
+    // 토큰에서 email 파싱
+    public String getEmail(String token) {
+        return getPayload(token)
+                .get("email", String.class);
+    }
+
+    // 토큰에서 username 파싱
+    public String getNickname(String token) {
+        return getPayload(token)
+                .get("nickname", String.class);
+    }
+
+    // 토큰에서 role 파싱
+    public RoleType getRole(String token) {
+        return getPayload(token)
+                .get("role", RoleType.class);
+    }
+
+    private Claims getPayload(String token) {
         return Jwts.parser()
                 .verifyWith(getSignKey())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .get("username", String.class);
+                .getPayload();
     }
 
     /**
@@ -88,6 +112,9 @@ public class JwtUtil {
                 .subject(customUserDetails.getUsername())
                 .claim("category", category)
                 .claim("username", customUserDetails.getUsername())
+                .claim("email", customUserDetails.getEmail())
+                .claim("nickname", customUserDetails.getNickname())
+                .claim("role", customUserDetails.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredAt))
                 .signWith(getSignKey())
@@ -148,11 +175,7 @@ public class JwtUtil {
      * @return 추출된 클레임
      */
     public Claims getClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return getPayload(token);
     }
 
     /**
@@ -165,15 +188,6 @@ public class JwtUtil {
     }
 
 
-//  // 토큰에서 role 파싱
-//  public String getRole(String token) {
-//    return Jwts.parser()
-//        .verifyWith(getSignKey())
-//        .build()
-//        .parseSignedClaims(token)
-//        .getPayload()
-//        .get("role", String.class);
-//  }
 //
 //  // 토큰 만료 여부 확인
 //  public Boolean isExpired(String token) {

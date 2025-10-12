@@ -2,6 +2,7 @@ package org.example.tripbuddy.global.config;
 
 
 import lombok.RequiredArgsConstructor;
+import org.example.tripbuddy.domain.user.repository.UserRepository;
 import org.example.tripbuddy.global.filter.JwtFilter;
 import org.example.tripbuddy.global.filter.LoginFilter;
 import org.example.tripbuddy.global.util.JwtUtil;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationConfiguration authenticationConfiguration;
+  private final UserRepository userRepository;
 
   /**
    * Security Filter Chain 설정
@@ -60,7 +62,7 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(
-                    new JwtFilter(jwtUtil),
+                    new JwtFilter(jwtUtil, userRepository),
                     LoginFilter.class
             )
             .addFilterAt(

@@ -1,6 +1,7 @@
 package org.example.tripbuddy.domain.user.login.dto;
 
 import lombok.RequiredArgsConstructor;
+import org.example.tripbuddy.domain.user.domain.RoleType;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,8 @@ public class CustomUserDetails implements UserDetails {
         return user.getUsername();
     }
 
+    public User getUser() { return user; }
+
     public Long getId(){
         return user.getId();
     }
@@ -38,5 +41,7 @@ public class CustomUserDetails implements UserDetails {
     public String getEmail(){
         return user.getEmail();
     }
+
+    public RoleType getRole(){return user.getRole();}
 
 }

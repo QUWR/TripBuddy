@@ -22,7 +22,8 @@ public class  SecurityUrls {
    * 허용된 CORS Origin 목록
    */
   public static final List<String> ALLOWED_ORIGINS = Arrays.asList(
-
+      "http://localhost:3000",
+      "http://localhost:5173"
   );
 }
 

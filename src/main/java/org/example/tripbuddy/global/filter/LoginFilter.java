@@ -14,9 +14,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
 import org.example.tripbuddy.domain.user.login.dto.LoginRequest;
+import org.example.tripbuddy.domain.user.login.dto.LoginResponse;
 import org.example.tripbuddy.global.exception.CustomException;
 import org.example.tripbuddy.global.exception.ErrorCode;
 import org.example.tripbuddy.global.util.JwtUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -78,10 +80,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         cookie.setMaxAge((int) (jwtUtil.getRefreshExpirationTime() / 1000)); // 쿠키 maxAge는 초 단위 이므로, 밀리초를 1000으로 나눔
         response.addCookie(cookie);
 
+        // 응답 설정
+        LoginResponse loginResponse = new LoginResponse(customUserDetails.getUser());
+        response.setStatus(HttpStatus.OK.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("accessToken: " + accessToken + '\n');
-        response.getWriter().write("refreshToken: " + refreshToken);
+        objectMapper.writeValue(response.getWriter(), loginResponse);
     }
 
     //로그인 실패시 실행하는 메소드

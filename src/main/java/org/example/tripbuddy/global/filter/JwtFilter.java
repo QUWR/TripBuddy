@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
+import org.example.tripbuddy.domain.user.repository.UserRepository;
 import org.example.tripbuddy.global.config.SecurityUrls;
 import org.example.tripbuddy.global.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +24,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -40,7 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
         // Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             log.error("토큰이 존재하지 않거나 형식이 잘못되었습니다.");
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing token");
             return;
         }
 
@@ -51,21 +53,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 토큰 유효성 검증
         if (!jwtUtil.validateToken(token)) {
-
             log.error("JWT토큰이 유효하지 않습니다.");
-            filterChain.doFilter(request, response);
-
-            //조건이 해당되면 메소드 종료 (필수)
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
             return;
         }
 
-        // 토큰에서 username 획득
-        String username = jwtUtil.getUsername(token);
+        // 토큰에서 필요한 값 획득
+        String email = jwtUtil.getEmail(token);
 
-        //user를 생성하여 값 set
-        User user = User.builder()
-                .username(username)
-                .build();
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            log.error("토큰은 유효하지만 해당하는 사용자가 데이터베이스에 없습니다. email: {}", email);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+            return;
+        }
 
         //UserDetails에 회원 정보 객체 담기
         CustomUserDetails customUserDetails = new CustomUserDetails(user);

@@ -1,8 +1,10 @@
 package org.example.tripbuddy.domain.user.register.service;
 
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.tripbuddy.domain.user.domain.RoleType;
 import org.example.tripbuddy.global.exception.CustomException;
 import org.example.tripbuddy.global.exception.ErrorCode;
 import org.example.tripbuddy.domain.user.domain.User;
@@ -20,12 +22,19 @@ public class RegisterService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
 
+    @Transactional
     public RegisterResponse register(RegisterRequest request){
 
-        //중복 검증
+        // 이메일 중복 검증
         if (userRepository.existsByEmail(request.getEmail())) {
             log.error("이미 사용중인 이메일입니다. 이메일: {}", request.getEmail());
             throw new CustomException(ErrorCode.ExistingEmail);
+        }
+
+        // 닉네임 중복 검증
+        if (userRepository.existsByNickname(request.getNickname())) {
+            log.error("이미 사용중인 닉네임입니다. 닉네임: {}", request.getNickname());
+            throw new CustomException(ErrorCode.ExistingNickname);
         }
 
         //새로운 회원 생성
@@ -34,6 +43,7 @@ public class RegisterService {
                 .password(encoder.encode(request.getPassword()))
                 .username(request.getUsername())
                 .nickname(request.getNickname())
+                .role(RoleType.USER) // 기본 권한 부여
                 .build();
 
         //회원 저장
