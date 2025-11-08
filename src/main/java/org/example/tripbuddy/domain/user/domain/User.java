@@ -3,7 +3,11 @@ package org.example.tripbuddy.domain.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.tripbuddy.domain.content.domain.Content;
 import org.example.tripbuddy.global.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -31,6 +35,9 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RoleType role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Content> contents = new ArrayList<>();
 
     @Column(nullable = false)
     private int contentNum = 0;
