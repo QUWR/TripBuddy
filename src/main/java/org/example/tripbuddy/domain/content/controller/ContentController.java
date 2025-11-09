@@ -52,8 +52,7 @@ public class ContentController {
         );
 
         // 2. 응답 201 Created 상태와 함께 반환
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(savedContent);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedContent);
     }
 }
 
