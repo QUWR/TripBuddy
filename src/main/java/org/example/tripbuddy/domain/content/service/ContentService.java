@@ -69,7 +69,7 @@ public class ContentService {
                 .build();
 
         // 4. DB에 저장 후 엔티티 반환
-        return ContentUploadResponse.from(content);
+        return ContentUploadResponse.from(contentRepository.save(content));
     }
 
 
