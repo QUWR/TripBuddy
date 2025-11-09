@@ -7,6 +7,7 @@ import org.example.tripbuddy.domain.content.domain.Content;
 import org.example.tripbuddy.domain.content.domain.ContentType;
 import org.example.tripbuddy.domain.content.dto.ContentListResponse;
 import org.example.tripbuddy.domain.content.dto.ContentUploadRequest;
+import org.example.tripbuddy.domain.content.dto.ContentUploadResponse;
 import org.example.tripbuddy.domain.content.repository.ContentRepository;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
@@ -48,7 +49,7 @@ public class ContentService {
      * 새 콘텐츠(블로그 글, 팁, 리뷰) 업로드
      */
     @Transactional // 이 메소드는 DB에 쓰기 작업을 하므로 readOnly=false 설정
-    public Content uploadContent(
+    public ContentUploadResponse uploadContent(
             ContentType contentType,
             ContentUploadRequest request,
             CustomUserDetails userDetails // @AuthenticationPrincipal로 받은 사용자
@@ -68,7 +69,7 @@ public class ContentService {
                 .build();
 
         // 4. DB에 저장 후 엔티티 반환
-        return contentRepository.save(content);
+        return ContentUploadResponse.from(content);
     }
 
 
