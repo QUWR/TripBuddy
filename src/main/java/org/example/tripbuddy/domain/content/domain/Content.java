@@ -31,7 +31,8 @@ public class Content extends BaseEntity {
     @Column(nullable = false)
     private String body;
 
-    private String imageUrl;
+    //커버 이미지
+    //private String imageUrl;
 
     @Builder.Default
     private Double rateAvg = 0.0;
