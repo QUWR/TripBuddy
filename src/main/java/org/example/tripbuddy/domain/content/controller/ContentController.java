@@ -45,15 +45,15 @@ public class ContentController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         // 1. 서비스 호출
-        Content savedContent = contentService.uploadContent(
+        ContentUploadResponse savedContent = contentService.uploadContent(
                 contentType,
                 request,
                 userDetails
         );
 
-        // 2. 응답 DTO로 변환하여 201 Created 상태와 함께 반환
+        // 2. 응답 201 Created 상태와 함께 반환
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ContentUploadResponse.from(savedContent));
+                .body(savedContent);
     }
 }
 
