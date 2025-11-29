@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Slf4j
@@ -27,8 +28,8 @@ public class ImageCleanupScheduler {
     public void cleanupOrphanImages() {
         log.info("Starting cleanup of orphan images...");
 
-        // 1. 24시간 이전의 TEMP 상태 이미지 조회
-        LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
+        // 1. 24시간 이전의 TEMP 상태 이미지 조회를 위해 UTC 기준 시간 사용
+        LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).minusHours(24);
         List<ImageMetadata> orphanImages = imageMetadataRepository.findByStatusAndCreatedAtBefore(ImageStatus.TEMP, cutoff);
 
         if (orphanImages.isEmpty()) {
@@ -40,13 +41,8 @@ public class ImageCleanupScheduler {
 
         // 2. S3에서 파일 삭제 및 DB에서 메타데이터 삭제
         for (ImageMetadata image : orphanImages) {
-            try {
-                s3Service.delete(image.getUrl());
-                imageMetadataRepository.delete(image);
-            } catch (Exception e) {
-                // 특정 이미지 삭제 실패 시 다른 이미지 처리에 영향 주지 않도록 예외 처리
-                log.error("Failed to delete image with URL: {}. Error: {}", image.getUrl(), e.getMessage());
-            }
+            s3Service.delete(image.getUrl());
+            imageMetadataRepository.delete(image);
         }
 
         log.info("Finished cleanup of orphan images.");
