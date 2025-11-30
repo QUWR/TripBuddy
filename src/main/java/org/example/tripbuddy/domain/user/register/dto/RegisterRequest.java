@@ -1,9 +1,13 @@
 package org.example.tripbuddy.domain.user.register.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.tripbuddy.domain.user.domain.User;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class RegisterRequest {
 
     private String email;
