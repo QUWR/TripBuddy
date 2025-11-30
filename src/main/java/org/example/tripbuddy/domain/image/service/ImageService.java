@@ -1,6 +1,7 @@
 package org.example.tripbuddy.domain.image.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.tripbuddy.domain.image.domain.ImageMetadata;
 import org.example.tripbuddy.domain.image.domain.ImageStatus;
 import org.example.tripbuddy.domain.image.repository.ImageMetadataRepository;
@@ -9,8 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -19,8 +19,8 @@ public class ImageService {
     private final ImageMetadataRepository imageMetadataRepository;
 
     @Transactional
-    public String uploadImage(MultipartFile image) throws IOException {
-        // 1. S3에 이미지 업로드
+    public String uploadImage(MultipartFile image) {
+        // 1. S3에 이미지 업로드 (S3Service에서 예외 처리 담당)
         String imageUrl = s3Service.upload(image, "content-images");
 
         // 2. ImageMetadata 테이블에 정보 저장
