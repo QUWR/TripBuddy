@@ -56,7 +56,9 @@ public class S3Service {
             amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, fileKey));
             log.info("Successfully deleted S3 object: {}", fileUrl);
         } catch (Exception e) {
+            // S3 삭제 실패 시, 호출자가 알 수 있도록 예외를 던짐
             log.error("Failed to delete S3 object for URL: {}. Error: {}", fileUrl, e.getMessage());
+            throw new RuntimeException("Failed to delete S3 object: " + fileUrl, e);
         }
     }
 }

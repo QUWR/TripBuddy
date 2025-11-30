@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,17 +68,56 @@ public class ContentService {
 
         Content savedContent = contentRepository.save(content);
 
-        activateImagesInContent(savedContent);
+        List<String> imageUrls = extractImageUrls(savedContent.getBody());
+        activateImages(imageUrls, savedContent);
 
         return ContentUploadResponse.from(savedContent);
     }
 
-    private void activateImagesInContent(Content content) {
-        List<String> imageUrls = extractImageUrls(content.getBody());
-        if (imageUrls.isEmpty()) {
-            return;
+    @Transactional
+    public ContentUploadResponse updateContent(Long contentId, ContentUploadRequest request, CustomUserDetails userDetails) {
+        // 1. 게시글 조회
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+
+        // 2. 권한 검증
+        if (!Objects.equals(content.getUser().getId(), userDetails.getId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
         }
 
+        // 3. 이미지 처리
+        processImageChanges(request.getBody(), content);
+
+        // 4. 게시글 업데이트 (Dirty Checking)
+        content.update(request.getTitle(), request.getBody());
+
+        return ContentUploadResponse.from(content);
+    }
+
+    private void processImageChanges(String newBody, Content content) {
+        // 1. 새로운 본문에서 이미지 URL 추출
+        List<String> newImageUrls = extractImageUrls(newBody);
+        Set<String> newImageUrlSet = Set.copyOf(newImageUrls);
+
+        // 2. 기존에 연결된 이미지 목록 조회
+        List<ImageMetadata> oldImages = imageMetadataRepository.findByContentId(content.getId());
+
+        // 3. [삭제 처리] 더 이상 사용되지 않는 이미지 처리
+        oldImages.stream()
+                .filter(img -> !newImageUrlSet.contains(img.getUrl()))
+                .forEach(img -> {
+                    img.setStatus(ImageStatus.TEMP);
+                    img.setContent(null); // 연관관계 제거 (고아 객체화)
+                });
+
+        // 4. [신규/유지 처리] 새로운 이미지 목록 활성화
+        activateImages(newImageUrls, content);
+    }
+
+    private void activateImages(List<String> imageUrls, Content content) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
         List<ImageMetadata> images = imageMetadataRepository.findByUrlIn(imageUrls);
         for (ImageMetadata image : images) {
             if (image.getStatus() == ImageStatus.TEMP) {
