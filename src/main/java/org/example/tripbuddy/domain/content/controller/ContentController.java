@@ -23,11 +23,17 @@ public class ContentController {
 
     private final ContentService contentService;
 
+    /**
+     * 콘텐츠 목록 조회 (GET /api/contents/{contentType})
+     */
     @GetMapping("/{contentType}")
     public ResponseEntity<List<ContentListResponse>> getContentList(@PathVariable ContentType contentType) {
         return ResponseEntity.ok(contentService.getContentList(contentType));
     }
 
+    /**
+     * 콘텐츠 업로드 (POST /api/contents/{contentType})
+     */
     @PostMapping(value = "/{contentType}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ContentUploadResponse> uploadContent(
             @PathVariable ContentType contentType,
@@ -40,5 +46,18 @@ public class ContentController {
                 userDetails
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * 콘텐츠 수정 (PUT /api/contents/{contentId})
+     */
+    @PutMapping("/{contentId}")
+    public ResponseEntity<ContentUploadResponse> updateContent(
+            @PathVariable Long contentId,
+            @RequestBody @Valid ContentUploadRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        ContentUploadResponse response = contentService.updateContent(contentId, request, userDetails);
+        return ResponseEntity.ok(response);
     }
 }
