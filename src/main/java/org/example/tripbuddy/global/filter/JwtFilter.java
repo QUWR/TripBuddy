@@ -30,8 +30,16 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
+
         // 인증 생략 경로
-        if (isWhitelistedPath(request.getRequestURI())) {
+        boolean isWhitelisted = isWhitelistedPath(requestURI);
+        // 단순 조회
+        boolean isPublicContentApi = "GET".equalsIgnoreCase(method) && pathMatcher.match("/api/contents/**", requestURI);
+
+        // 인증 생략 조건에 해당하면 필터 통과
+        if (isWhitelisted || isPublicContentApi) {
             filterChain.doFilter(request, response);
             return;
         }
