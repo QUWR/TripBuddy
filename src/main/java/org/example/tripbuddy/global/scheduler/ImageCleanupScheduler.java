@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Slf4j
@@ -28,8 +27,7 @@ public class ImageCleanupScheduler {
     public void cleanupOrphanImages() {
         log.info("Starting cleanup of orphan images...");
 
-        // 1. 24시간 이전의 TEMP 상태 이미지 조회를 위해 UTC 기준 시간 사용
-        LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).minusHours(24);
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
         List<ImageMetadata> orphanImages = imageMetadataRepository.findByStatusAndCreatedAtBefore(ImageStatus.TEMP, cutoff);
 
         if (orphanImages.isEmpty()) {
@@ -39,10 +37,19 @@ public class ImageCleanupScheduler {
 
         log.info("Found {} orphan images to delete.", orphanImages.size());
 
-        // 2. S3에서 파일 삭제 및 DB에서 메타데이터 삭제
         for (ImageMetadata image : orphanImages) {
-            s3Service.delete(image.getUrl());
-            imageMetadataRepository.delete(image);
+            try {
+                // 1. S3에서 파일 삭제 시도
+                s3Service.delete(image.getUrl());
+
+                // 2. S3 삭제가 성공한 경우에만 DB에서 메타데이터 삭제
+                imageMetadataRepository.delete(image);
+
+            } catch (Exception e) {
+                // S3 삭제 실패 시, 로그만 남기고 해당 이미지의 DB 데이터는 삭제하지 않음.
+                // 다음 스케줄링 주기에 다시 삭제를 시도하게 됨.
+                log.error("Failed to process orphan image (URL: {}): {}", image.getUrl(), e.getMessage());
+            }
         }
 
         log.info("Finished cleanup of orphan images.");

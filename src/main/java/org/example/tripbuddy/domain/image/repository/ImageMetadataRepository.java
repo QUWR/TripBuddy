@@ -14,4 +14,7 @@ public interface ImageMetadataRepository extends JpaRepository<ImageMetadata, Lo
 
     // 특정 시간 이전에 생성된 TEMP 상태의 이미지들을 조회
     List<ImageMetadata> findByStatusAndCreatedAtBefore(ImageStatus status, LocalDateTime cutoff);
+
+    // [추가] 특정 게시글 ID에 속한 모든 이미지 메타데이터를 조회
+    List<ImageMetadata> findByContentId(Long contentId);
 }
