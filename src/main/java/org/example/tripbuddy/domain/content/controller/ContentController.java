@@ -51,7 +51,7 @@ public class ContentController {
     /**
      * 콘텐츠 수정 (PUT /api/contents/{contentId})
      */
-    @PutMapping("/{contentId}")
+    @PutMapping(value = "/{contentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ContentUploadResponse> updateContent(
             @PathVariable Long contentId,
             @RequestBody @Valid ContentUploadRequest request,
@@ -59,5 +59,17 @@ public class ContentController {
     ) {
         ContentUploadResponse response = contentService.updateContent(contentId, request, userDetails);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 콘텐츠 삭제 (DELETE /api/contents/{contentId})
+     */
+    @DeleteMapping("/{contentId}")
+    public ResponseEntity<Void> deleteContent(
+            @PathVariable Long contentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        contentService.deleteContent(contentId, userDetails);
+        return ResponseEntity.noContent().build();
     }
 }
