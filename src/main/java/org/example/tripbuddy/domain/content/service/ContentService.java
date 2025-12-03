@@ -76,6 +76,22 @@ public class ContentService {
 
     @Transactional
     public ContentUploadResponse updateContent(Long contentId, ContentUploadRequest request, CustomUserDetails userDetails) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+
+        if (!Objects.equals(content.getUser().getId(), userDetails.getId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
+        processImageChanges(request.getBody(), content);
+
+        content.update(request.getTitle(), request.getBody());
+
+        return ContentUploadResponse.from(content);
+    }
+
+    @Transactional
+    public void deleteContent(Long contentId, CustomUserDetails userDetails) {
         // 1. 게시글 조회
         Content content = contentRepository.findById(contentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
@@ -85,32 +101,30 @@ public class ContentService {
             throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
         }
 
-        // 3. 이미지 처리
-        processImageChanges(request.getBody(), content);
+        // 3. 이미지 처리 (Soft Delete)
+        List<ImageMetadata> images = imageMetadataRepository.findByContentId(contentId);
+        images.forEach(image -> {
+            image.setStatus(ImageStatus.TEMP);
+            image.setContent(null); // 연관관계 제거
+        });
 
-        // 4. 게시글 업데이트 (Dirty Checking)
-        content.update(request.getTitle(), request.getBody());
-
-        return ContentUploadResponse.from(content);
+        // 4. 게시글 삭제
+        contentRepository.delete(content);
     }
 
     private void processImageChanges(String newBody, Content content) {
-        // 1. 새로운 본문에서 이미지 URL 추출
         List<String> newImageUrls = extractImageUrls(newBody);
         Set<String> newImageUrlSet = Set.copyOf(newImageUrls);
 
-        // 2. 기존에 연결된 이미지 목록 조회
         List<ImageMetadata> oldImages = imageMetadataRepository.findByContentId(content.getId());
 
-        // 3. [삭제 처리] 더 이상 사용되지 않는 이미지 처리
         oldImages.stream()
                 .filter(img -> !newImageUrlSet.contains(img.getUrl()))
                 .forEach(img -> {
                     img.setStatus(ImageStatus.TEMP);
-                    img.setContent(null); // 연관관계 제거 (고아 객체화)
+                    img.setContent(null);
                 });
 
-        // 4. [신규/유지 처리] 새로운 이미지 목록 활성화
         activateImages(newImageUrls, content);
     }
 
