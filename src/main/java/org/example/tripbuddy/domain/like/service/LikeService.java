@@ -1,11 +1,11 @@
 package org.example.tripbuddy.domain.like.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tripbuddy.domain.content.domain.Content;
-import org.example.tripbuddy.domain.content.repository.ContentRepository;
-import org.example.tripbuddy.domain.like.domain.ContentLike;
+import org.example.tripbuddy.domain.comment.domain.Comment;
+import org.example.tripbuddy.domain.comment.repository.CommentRepository;
+import org.example.tripbuddy.domain.like.domain.CommentLike;
 import org.example.tripbuddy.domain.like.dto.LikeResponse;
-import org.example.tripbuddy.domain.like.repository.ContentLikeRepository;
+import org.example.tripbuddy.domain.like.repository.CommentLikeRepository;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
 import org.example.tripbuddy.domain.user.repository.UserRepository;
@@ -20,37 +20,35 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LikeService {
 
-    private final ContentLikeRepository contentLikeRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
-    private final ContentRepository contentRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
-    public LikeResponse toggleLike(Long contentId, CustomUserDetails userDetails) {
+    public LikeResponse toggleCommentLike(Long commentId, CustomUserDetails userDetails) {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.UserNotFound));
 
-        Content content = contentRepository.findById(contentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-        Optional<ContentLike> existingLike = contentLikeRepository.findByUserAndContent(user, content);
+        Optional<CommentLike> existingLike = commentLikeRepository.findByUserAndComment(user, comment);
 
         boolean isLiked;
         if (existingLike.isPresent()) {
-            // 좋아요가 이미 존재하면 -> 삭제
-            contentLikeRepository.delete(existingLike.get());
-            content.decrementLikeCount();
+            commentLikeRepository.delete(existingLike.get());
+            comment.decrementLikeCount();
             isLiked = false;
         } else {
-            // 좋아요가 없으면 -> 생성
-            ContentLike newLike = ContentLike.builder()
+            CommentLike newLike = CommentLike.builder()
                     .user(user)
-                    .content(content)
+                    .comment(comment)
                     .build();
-            contentLikeRepository.save(newLike);
-            content.incrementLikeCount();
+            commentLikeRepository.save(newLike);
+            comment.incrementLikeCount();
             isLiked = true;
         }
 
-        return new LikeResponse(isLiked, content.getLikeCount());
+        return new LikeResponse(isLiked, comment.getLikeCount());
     }
 }

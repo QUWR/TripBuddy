@@ -30,4 +30,21 @@ public class Comment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_id", nullable = false)
     private Content content;
+
+    // [추가] 댓글 좋아요 수
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer likeCount = 0;
+
+    // [추가] 좋아요 수 증가 메소드
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    // [추가] 좋아요 수 감소 메소드
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
 }

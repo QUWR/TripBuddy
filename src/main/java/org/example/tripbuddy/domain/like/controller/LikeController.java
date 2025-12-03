@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/contents/{contentId}/likes")
+@RequestMapping("/api/comments/{commentId}/likes") // URL 변경
 public class LikeController {
 
     private final LikeService likeService;
 
     @PostMapping
     public ResponseEntity<LikeResponse> toggleLike(
-            @PathVariable Long contentId,
+            @PathVariable Long commentId, // contentId -> commentId
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        LikeResponse response = likeService.toggleLike(contentId, userDetails);
+        LikeResponse response = likeService.toggleCommentLike(commentId, userDetails);
         return ResponseEntity.ok(response);
     }
 }

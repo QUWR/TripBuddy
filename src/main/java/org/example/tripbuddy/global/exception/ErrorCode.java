@@ -21,7 +21,10 @@ public enum ErrorCode {
     UserNotFound(HttpStatus.NOT_FOUND, "존재하지 않는 유저 입니다."),
 
     // 게시글 관련 에러
-    CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다.");
+    CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다."),
+
+    // 댓글 관련 에러
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글 입니다.");
 
 
     private final HttpStatus status;
