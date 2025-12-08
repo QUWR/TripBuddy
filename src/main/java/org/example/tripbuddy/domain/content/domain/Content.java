@@ -5,7 +5,6 @@ import lombok.*;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.example.tripbuddy.global.BaseEntity;
 
-
 @Entity
 @Getter
 @Builder
@@ -16,7 +15,7 @@ public class Content extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) // 성능 최적화를 위해 LAZY 로딩 명시
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -34,13 +33,16 @@ public class Content extends BaseEntity {
     @Builder.Default
     private Double rateAvg = 0.0;
 
-    /**
-     * 게시글의 제목과 본문을 수정하는 비즈니스 메소드
-     * @param title 수정할 제목
-     * @param body 수정할 본문
-     */
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer commentCount = 0;
+
     public void update(String title, String body) {
         this.title = title;
         this.body = body;
+    }
+
+    public void incrementCommentCount() {
+        this.commentCount++;
     }
 }
