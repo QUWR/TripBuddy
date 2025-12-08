@@ -3,6 +3,7 @@ package org.example.tripbuddy.domain.comment.service;
 import lombok.RequiredArgsConstructor;
 import org.example.tripbuddy.domain.comment.domain.Comment;
 import org.example.tripbuddy.domain.comment.dto.CommentRequest;
+import org.example.tripbuddy.domain.comment.dto.CommentUpdateRequest;
 import org.example.tripbuddy.domain.comment.repository.CommentRepository;
 import org.example.tripbuddy.domain.content.domain.Content;
 import org.example.tripbuddy.domain.content.repository.ContentRepository;
@@ -45,6 +46,21 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long commentId, CustomUserDetails userDetails) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if (!Objects.equals(comment.getUser().getId(), userDetails.getId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
+        Content content = comment.getContent();
+        content.decreaseCommentCount();
+
+        commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public Comment updateComment(Long commentId, CommentUpdateRequest request, CustomUserDetails userDetails) {
         // 1. 댓글 조회
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
@@ -54,11 +70,9 @@ public class CommentService {
             throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
         }
 
-        // 3. 게시글의 댓글 수 감소
-        Content content = comment.getContent();
-        content.decreaseCommentCount();
+        // 3. 댓글 내용 업데이트 (Dirty Checking 활용)
+        comment.update(request.getBody());
 
-        // 4. 댓글 삭제
-        commentRepository.delete(comment);
+        return comment;
     }
 }

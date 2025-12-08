@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.tripbuddy.domain.comment.dto.CommentRequest;
 import org.example.tripbuddy.domain.comment.dto.CommentResponse;
+import org.example.tripbuddy.domain.comment.dto.CommentUpdateRequest;
 import org.example.tripbuddy.domain.comment.service.CommentService;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
 import org.springframework.http.HttpStatus;
@@ -35,5 +36,15 @@ public class CommentController {
     ) {
         commentService.deleteComment(commentId, userDetails);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        CommentResponse response = CommentResponse.from(commentService.updateComment(commentId, request, userDetails));
+        return ResponseEntity.ok(response);
     }
 }
