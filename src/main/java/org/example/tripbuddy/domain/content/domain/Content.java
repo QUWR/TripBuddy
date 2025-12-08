@@ -45,4 +45,10 @@ public class Content extends BaseEntity {
     public void incrementCommentCount() {
         this.commentCount++;
     }
+
+    public void decreaseCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
+        }
+    }
 }
