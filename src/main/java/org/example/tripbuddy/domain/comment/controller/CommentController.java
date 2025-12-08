@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/contents/{contentId}/comments")
+@RequestMapping("/api")
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping
+    @PostMapping("/contents/{contentId}/comments")
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable Long contentId,
             @Valid @RequestBody CommentRequest request,
@@ -26,5 +26,14 @@ public class CommentController {
     ) {
         CommentResponse response = CommentResponse.from(commentService.createComment(contentId, request, userDetails));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        commentService.deleteComment(commentId, userDetails);
+        return ResponseEntity.noContent().build();
     }
 }
