@@ -12,12 +12,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class CommentController {
 
     private final CommentService commentService;
+
+    @GetMapping("/contents/{contentId}/comments")
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable Long contentId) {
+        List<CommentResponse> comments = commentService.getComments(contentId);
+        return ResponseEntity.ok(comments);
+    }
 
     @PostMapping("/contents/{contentId}/comments")
     public ResponseEntity<CommentResponse> createComment(
@@ -29,15 +37,6 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(
-            @PathVariable Long commentId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        commentService.deleteComment(commentId, userDetails);
-        return ResponseEntity.noContent().build();
-    }
-
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long commentId,
@@ -46,5 +45,14 @@ public class CommentController {
     ) {
         CommentResponse response = CommentResponse.from(commentService.updateComment(commentId, request, userDetails));
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        commentService.deleteComment(commentId, userDetails);
+        return ResponseEntity.noContent().build();
     }
 }
