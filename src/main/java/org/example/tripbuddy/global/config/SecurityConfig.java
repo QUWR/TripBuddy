@@ -56,6 +56,7 @@ public class SecurityConfig {
             // 경로별 인가 작업
             .authorizeHttpRequests((authorize) -> authorize
                     .requestMatchers(SecurityUrls.AUTH_WHITELIST.toArray(String[]::new)).permitAll()
+                    //contents get 방식 허용
                     .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
                     .anyRequest().authenticated()
             )
