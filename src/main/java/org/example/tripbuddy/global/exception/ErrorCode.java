@@ -24,7 +24,11 @@ public enum ErrorCode {
     CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다."),
 
     // 댓글 관련 에러
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글 입니다.");
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글 입니다."),
+
+    // 플랜 관련 에러
+    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 플랜 입니다."),
+    ALREADY_MEMBER(HttpStatus.CONFLICT, "이미 해당 플랜에 참여하고 있습니다.");
 
 
     private final HttpStatus status;
