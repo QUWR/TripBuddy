@@ -1,4 +1,25 @@
-# TripBuddy
+# ✈️ TripBuddy (트립버디)
+
+> 함께 계획하고, 공유하고, 떠나는 올인원 여행 플랫폼
+> 
+
+**TripBuddy**는 여행 정보 공유(커뮤니티)와 동행 간의 실시간 여행 계획 협업(플래너)을 제공하는 백엔드 API 서비스입니다.
+
+단순한 CRUD를 넘어 **대용량 트래픽과 동시성 문제, 리소스 효율화**를 고려하여 설계되었습니다.
+
+---
+
+## 📚 목차
+
+1. 프로젝트 소개
+2. 주요 기능 및 기술적 특징
+3. 기술 스택
+4. 시스템 아키텍처
+5. 실행 방법
+6. API 문서
+
+---
+
 ## 📝 프로젝트 소개
 
 TripBuddy는 단순한 여행 정보 공유를 넘어, 사용자 간의 상호작용과 데이터의 효율적 관리에 초점을 맞춘 프로젝트입니다.
@@ -10,7 +31,7 @@ TripBuddy는 단순한 여행 정보 공유를 넘어, 사용자 간의 상호�
 
 ---
 
-## ✨ 주요 기능
+## ✨ 주요 기능 및 기술적 특징
 
 ### 1. 🔐 인증 및 사용자 관리 (Auth)
 
@@ -31,45 +52,52 @@ TripBuddy는 단순한 여행 정보 공유를 넘어, 사용자 간의 상호�
 - **댓글 시스템:** 게시글에 대한 댓글 작성, 수정, 삭제 기능.
 - **좋아요(Like):** 게시글 및 댓글에 대한 좋아요 토글 기능 및 카운트 동기화.
 
-### 4. 🗺️ 실시간 여행 플래너 (Planner)
+### 4. 🗺️ 실시간 협업 여행 플래너 (Real-Time Planner)
 
-- **여행 계획 생성:** 제목, 날짜, 초대 코드를 포함한 플랜 생성.
-- **멤버 초대:** 고유 초대 코드를 통한 멤버 입장 기능.
-- **실시간 동기화:** **WebSocket & STOMP**를 활용하여 여러 사용자가 여행 일정(`Schedule`)을 동시에 편집하고 실시간으로 반영.
-- **예산 관리(Budget):** 여행 경비 및 카테고리별 지출 관리.
+- **WebSocket & STOMP:** 여행 일정을 여러 명이 동시에 편집할 수 있도록 양방향 통신을 구현했습니다.
+    - **Pub/Sub 모델:** 특정 여행 방(`Plan`)을 구독한 사용자들에게만 변경 사항을 실시간으로 브로드캐스팅합니다.
+- **동시성 제어 (Concurrency Control):** 다수의 사용자가 동시에 같은 일정을 수정할 때 발생하는 데이터 덮어쓰기(Lost Update) 문제를 방지하기 위해 **낙관적 락(Optimistic Lock, `@Version`)**을 적용했습니다.
+- **초대 시스템:** UUID 기반의 고유 초대 코드를 생성하여 간편하게 멤버를 플랜에 초대할 수 있습니다.
+- **정확한 예산 관리:** 부동소수점 오차 없는 정확한 돈 계산을 위해 `BigDecimal` 타입을 사용하여 여행 경비(Budget)를 관리합니다.
+
+### 5.🧩 확장성 있는 도메인 설계
+
+- **Enum 활용:** `ContentType`(TIP, REVIEW), `RoleType`(USER, ADMIN), `ImageStatus` 등을 Enum으로 관리하여 Type Safety 보장.
+- **Converter:** `StringToContentTypeConverter`를 통해 URL 파라미터를 Enum으로 자동 변환하여 컨트롤러 코드 간소화.
 
 ---
 
 ## 🛠 기술 스택
 
-| **분류** | **기술** | **상세 내용** |
+| **분류** | **기술** | **비고** |
 | --- | --- | --- |
-| **Language** | Java 21 | 최신 LTS 버전 사용 |
-| **Framework** | Spring Boot 3.5.3 | 웹 애플리케이션 프레임워크 |
-| **Build Tool** | Gradle | 의존성 관리 및 빌드 자동화 |
-| **Database** | MySQL, H2 | 프로덕션(MySQL), 테스트(H2) 환경 분리 |
-| **ORM** | Spring Data JPA | 객체 지향적인 데이터 접근 계층 구현 |
-| **Security** | Spring Security, JWT | 인증 및 권한 관리 |
-| **Storage** | AWS S3 | 이미지 파일 저장소 |
-| **Real-time** | WebSocket (STOMP) | 실시간 양방향 통신 |
-| **Docs** | Swagger (SpringDoc) | API 명세서 자동화 |
+| **Language** | Java 21 | Latest LTS |
+| **Framework** | Spring Boot 3.5.3 | Web, Validation, Security |
+| **Database** | MySQL 8.0, H2 | Production / Test |
+| **ORM** | Spring Data JPA | Hibernate |
+| **Security** | Spring Security, JWT | Authentication |
+| **Storage** | AWS S3 | Image Hosting |
+| **Real-time** | WebSocket (STOMP) | Messaging Protocol |
+| **Testing** | JUnit 5, Mockito | Unit/Integration Test |
+| **Docs** | Swagger (SpringDoc) | API Documentation |
 
 ---
 
-## 🏗 시스템 아키텍처 및 핵심 기술
+## 🏗 시스템 아키텍처
 
-### 🖼️ 이미지 업로드 프로세스 최적화
-
-사용자가 글을 쓰다가 이탈하거나 이미지를 삭제했을 때 발생하는 **불필요한 이미지(Garbage Image)** 문제를 해결하기 위해 상태 기반 관리 시스템을 도입했습니다.
-
-1. 이미지 업로드 시 `TEMP` 상태로 저장.
-2. 게시글 최종 저장 시 본문을 파싱하여 실제 포함된 이미지만 `ACTIVE`로 변경.
-3. Spring Scheduler가 주기적으로 `TEMP` 상태의 오래된 이미지를 S3에서 삭제.
-
-### 🧩 확장성 있는 도메인 설계
-
-- **Enum 활용:** `ContentType`(TIP, REVIEW), `RoleType`(USER, ADMIN), `ImageStatus` 등을 Enum으로 관리하여 Type Safety 보장.
-- **Converter:** `StringToContentTypeConverter`를 통해 URL 파라미터를 Enum으로 자동 변환하여 컨트롤러 코드 간소화.
+```mermaid
+graph LR
+    User[User] -->|Upload Image| Server[Spring Boot]
+    Server -->|Save File| S3[AWS S3]
+    Server -->|"Save Metadata (TEMP)"| DB[("MySQL")]
+    
+    User -->|Save Content| Server
+    Server -->|"Update Status (ACTIVE)"| DB
+    
+    Scheduler[ImageCleanupScheduler] -->|"Daily Check (3 AM)"| DB
+    Scheduler -->|Delete Orphan Files| S3
+    Scheduler -->|Delete Metadata| DB
+```
 
 ---
 
@@ -87,28 +115,25 @@ TripBuddy는 단순한 여행 정보 공유를 넘어, 사용자 간의 상호�
 
 Properties
 
-```jsx
+```
 # Server
 SERVER_PORT=8080
 
-# Database
+# Database (MySQL)
 SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/tripbuddy
-SPRING_DATASOURCE_USERNAME=your_username
+SPRING_DATASOURCE_USERNAME=root
 SPRING_DATASOURCE_PASSWORD=your_password
 
-# JWT
-JWT_SECRET_KEY=your_base64_encoded_secret_key
+# JWT Token Config
+JWT_SECRET_KEY=your_base64_secret_key_here
 JWT_ACCESS_EXP_TIME=3600000
 JWT_REFRESH_EXP_TIME=86400000
 
-# AWS S3
+# AWS S3 Config
 CLOUD_AWS_CREDENTIALS_ACCESS_KEY=your_aws_access_key
 CLOUD_AWS_CREDENTIALS_SECRET_KEY=your_aws_secret_key
 CLOUD_AWS_REGION_STATIC=ap-northeast-2
-CLOUD_AWS_S3_BUCKET=your_s3_bucket_name
-
-# Gemini API (Optional)
-GEMINI_API_KEY=your_gemini_api_key
+CLOUD_AWS_S3_BUCKET=your_bucket_name
 ```
 
 ### 3. 빌드 및 실행
