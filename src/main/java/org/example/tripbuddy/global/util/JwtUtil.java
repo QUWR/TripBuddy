@@ -14,8 +14,10 @@ import javax.crypto.SecretKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.tripbuddy.domain.user.domain.RefreshToken;
 import org.example.tripbuddy.domain.user.domain.RoleType;
 import org.example.tripbuddy.domain.user.login.dto.CustomUserDetails;
+import org.example.tripbuddy.domain.user.repository.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,7 @@ import org.example.tripbuddy.domain.user.login.service.CustomUserDetailService;
 public class JwtUtil {
 
     private final CustomUserDetailService customUserDetailService;
+    private final RefreshTokenRepository refreshTokenRepository; // Redis Repository 주입
 
     @Value("${jwt.secret-key}")
     private String secretKey;
@@ -88,14 +91,31 @@ public class JwtUtil {
     }
 
     /**
-     * RefreshToken 생성
+     * RefreshToken 생성 및 Redis 저장
      *
      * @param customUserDetails
      * @return
      */
     public String createRefreshToken(CustomUserDetails customUserDetails) {
         log.info("리프래시 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
-        return createToken(REFRESH_CATEGORY, customUserDetails, refreshTokenExpTime);
+        String token = createToken(REFRESH_CATEGORY, customUserDetails, refreshTokenExpTime);
+
+        // Redis에 저장
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(token)
+                .email(customUserDetails.getEmail())
+                .role(customUserDetails.getRole().toString())
+                .build();
+        
+        try {
+            refreshTokenRepository.save(refreshToken);
+        } catch (Exception e) {
+            log.error("Redis 저장 실패: {}", e.getMessage());
+            // Redis 저장 실패 시 예외를 던지거나, 로그만 남기고 진행할지 결정해야 함.
+            // 여기서는 서비스 안정성을 위해 로그만 남기고 진행 (단, 재발급 시 문제될 수 있음)
+        }
+
+        return token;
     }
 
     /**
@@ -149,6 +169,20 @@ public class JwtUtil {
             log.warn("JWT 토큰이 비어있거나 null입니다: {}", e.getMessage());
         }
         return false;
+    }
+
+    /**
+     * Redis에 Refresh Token이 존재하는지 확인
+     */
+    public boolean existsRefreshToken(String token) {
+        return refreshTokenRepository.existsById(token);
+    }
+
+    /**
+     * Redis에서 Refresh Token 삭제 (로그아웃 시 사용)
+     */
+    public void deleteRefreshToken(String token) {
+        refreshTokenRepository.deleteById(token);
     }
 
 
