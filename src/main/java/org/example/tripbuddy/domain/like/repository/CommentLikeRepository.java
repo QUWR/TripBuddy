@@ -1,6 +1,6 @@
 package org.example.tripbuddy.domain.like.repository;
 
-import org.example.tripbuddy.domain.comment.domain.Comment;
+import org.example.tripbuddy.domain.comment.dto.domain.Comment;
 import org.example.tripbuddy.domain.like.domain.CommentLike;
 import org.example.tripbuddy.domain.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

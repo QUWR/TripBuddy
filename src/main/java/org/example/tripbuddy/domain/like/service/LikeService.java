@@ -1,7 +1,7 @@
 package org.example.tripbuddy.domain.like.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tripbuddy.domain.comment.domain.Comment;
+import org.example.tripbuddy.domain.comment.dto.domain.Comment;
 import org.example.tripbuddy.domain.comment.repository.CommentRepository;
 import org.example.tripbuddy.domain.like.domain.CommentLike;
 import org.example.tripbuddy.domain.like.dto.LikeResponse;
