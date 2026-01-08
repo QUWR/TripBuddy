@@ -37,9 +37,11 @@ public class User extends BaseEntity {
     private RoleType role;
 
     @OneToMany(mappedBy = "user")
+    @Builder.Default
     private List<Content> contents = new ArrayList<>();
 
     @Column(nullable = false)
+    @Builder.Default
     private int contentNum = 0;
 
 }
