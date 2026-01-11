@@ -28,7 +28,11 @@ public enum ErrorCode {
 
     // 플랜 관련 에러
     PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 플랜 입니다."),
-    ALREADY_MEMBER(HttpStatus.CONFLICT, "이미 해당 플랜에 참여하고 있습니다.");
+    ALREADY_MEMBER(HttpStatus.CONFLICT, "이미 해당 플랜에 참여하고 있습니다."),
+
+    // 초대 관련 에러
+    INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 초대입니다."),
+    ALREADY_INVITED(HttpStatus.CONFLICT, "이미 초대된 사용자입니다.");
 
 
     private final HttpStatus status;

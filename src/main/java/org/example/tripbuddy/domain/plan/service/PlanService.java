@@ -1,6 +1,10 @@
 package org.example.tripbuddy.domain.plan.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.tripbuddy.domain.invitation.domain.Invitation;
+import org.example.tripbuddy.domain.invitation.domain.InvitationStatus;
+import org.example.tripbuddy.domain.invitation.repository.InvitationRepository;
+import org.example.tripbuddy.domain.notification.service.NotificationService;
 import org.example.tripbuddy.domain.plan.domain.Plan;
 import org.example.tripbuddy.domain.plan.domain.PlanMember;
 import org.example.tripbuddy.domain.plan.domain.PlanRole;
@@ -17,20 +21,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PlanService {
 
     private final PlanRepository planRepository;
     private final PlanMemberRepository planMemberRepository;
     private final UserRepository userRepository;
+    private final InvitationRepository invitationRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Plan createPlan(PlanCreateRequest request, CustomUserDetails userDetails) {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.UserNotFound));
 
-        // [추가] 시작일이 종료일보다 이후인지 검증
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST); // 적절한 에러코드 사용
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
 
         Plan plan = planRepository.save(Plan.builder()
@@ -50,23 +56,29 @@ public class PlanService {
     }
 
     @Transactional
-    public void inviteMember(String inviteCode, CustomUserDetails userDetails) {
-        User user = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.UserNotFound));
-
-        Plan plan = planRepository.findByInviteCode(inviteCode)
+    public void inviteUser(Long planId, String nickname, User sender) {
+        Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAN_NOT_FOUND));
 
-        // [추가] 이미 멤버인지 확인
-        if (planMemberRepository.existsByPlanAndUserId(plan, user.getId())) {
+        User receiver = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.UserNotFound));
+
+        if (planMemberRepository.existsByPlanAndUserId(plan, receiver.getId())) {
             throw new CustomException(ErrorCode.ALREADY_MEMBER);
         }
 
-        PlanMember member = PlanMember.builder()
+        if (invitationRepository.existsByPlanAndReceiverAndStatus(plan, receiver, InvitationStatus.PENDING)) {
+            throw new CustomException(ErrorCode.ALREADY_INVITED);
+        }
+
+        Invitation invitation = Invitation.builder()
                 .plan(plan)
-                .user(user)
-                .role(PlanRole.GUEST)
+                .sender(sender)
+                .receiver(receiver)
+                .status(InvitationStatus.PENDING)
                 .build();
-        planMemberRepository.save(member);
+        invitationRepository.save(invitation);
+
+        notificationService.sendNotification(receiver, sender.getNickname() + "님이 " + plan.getTitle() + " 플랜에 초대했습니다.");
     }
 }

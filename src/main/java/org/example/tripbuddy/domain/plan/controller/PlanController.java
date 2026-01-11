@@ -2,6 +2,7 @@ package org.example.tripbuddy.domain.plan.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.tripbuddy.domain.plan.domain.Plan;
 import org.example.tripbuddy.domain.plan.dto.BudgetStatResponse;
 import org.example.tripbuddy.domain.plan.dto.PlanCreateRequest;
 import org.example.tripbuddy.domain.plan.dto.ScheduleRequest;
@@ -32,16 +33,12 @@ public class PlanController {
     // --- REST API Endpoints ---
 
     @PostMapping
-    public ResponseEntity<String> createPlan(@Valid @RequestBody PlanCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        String inviteCode = planService.createPlan(request, userDetails).getInviteCode();
-        return ResponseEntity.status(HttpStatus.CREATED).body(inviteCode);
+    public ResponseEntity<Long> createPlan(@Valid @RequestBody PlanCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Plan plan = planService.createPlan(request, userDetails);
+        return ResponseEntity.status(HttpStatus.CREATED).body(plan.getId());
     }
 
-    @PostMapping("/invite/{inviteCode}")
-    public ResponseEntity<Void> inviteMember(@PathVariable String inviteCode, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        planService.inviteMember(inviteCode, userDetails);
-        return ResponseEntity.ok().build();
-    }
+    // 기존의 초대 코드 기반 inviteMember API는 InvitationController로 대체되었으므로 제거함.
 
     @GetMapping("/{planId}/budget/stats")
     public ResponseEntity<List<BudgetStatResponse>> getBudgetStats(@PathVariable Long planId, @AuthenticationPrincipal CustomUserDetails userDetails) {
