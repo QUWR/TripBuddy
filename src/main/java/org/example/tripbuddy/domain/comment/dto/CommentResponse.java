@@ -2,7 +2,7 @@ package org.example.tripbuddy.domain.comment.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.example.tripbuddy.domain.comment.dto.domain.Comment;
+import org.example.tripbuddy.domain.comment.domain.Comment;
 
 import java.time.LocalDateTime;
 

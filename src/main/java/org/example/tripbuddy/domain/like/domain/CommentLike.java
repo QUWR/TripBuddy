@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.tripbuddy.domain.comment.dto.domain.Comment;
+import org.example.tripbuddy.domain.comment.domain.Comment;
 import org.example.tripbuddy.domain.user.domain.User;
 
 @Entity

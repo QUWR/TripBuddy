@@ -1,4 +1,4 @@
-package org.example.tripbuddy.domain.comment.dto.domain;
+package org.example.tripbuddy.domain.comment.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
