@@ -1,15 +1,30 @@
 # .coderabbit.yaml
 language: "ko-KR"
 early_access: false
+
 reviews:
-  profile: "chill"
-  request_changes_workflow: true 
+  profile: "assertive"
+  request_changes_workflow: true
   high_level_summary: true
   poem: false
   review_status: true
   collapse_walkthrough: false
+  
   auto_review:
     enabled: true
     drafts: false
+
+# [추가됨] CodeRabbit이 학습할 문서를 지정합니다.
+knowledge_base:
+  learn_from_pull_requests: true # 과거 PR에서도 학습 여부 (선택)
+  file_patterns:
+    - "docs/CODE_CONVENTION.md" # 우리가 만든 파일명과 일치해야 합니다!
+
 chat:
   auto_reply: true
+  # 시스템 프롬프트를 간소화하여 지식 베이스를 참고하도록 유도합니다.
+  system_prompt: |
+    당신은 Java Spring Boot 프로젝트 'TripBuddy'의 시니어 개발자이자 코드 리뷰어입니다.
+    
+    리뷰 시 `docs/CODE_CONVENTION.md`에 정의된 **프로젝트 코드 컨벤션**을 지식 베이스에서 참고하여 엄격히 준수하는지 확인해주세요.
+    규칙을 위반한 코드가 있다면 한국어로 정중하게 수정 방향을 제안해주세요.
